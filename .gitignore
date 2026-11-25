@@ -1,0 +1,25 @@
+# Dependencies
+node_modules
+
+# Production build
+dist
+dist-ssr
+
+# Vercel local state
+.vercel
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea
