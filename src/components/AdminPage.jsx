@@ -7,12 +7,14 @@ import {
   Eye,
   EyeOff,
   ImagePlus,
+  LayoutGrid,
   Lock,
   LogOut,
   Pencil,
   Plus,
   RotateCcw,
   Search,
+  Sparkles,
   Trash2,
   Upload,
   X,
@@ -24,6 +26,7 @@ import {
   isAdminSessionUnlocked,
   setAdminSessionUnlocked,
 } from '../data/productStore';
+import StatusPosterStudio from './StatusPosterStudio.jsx';
 
 const STUDIO_SAMPLE_IMAGES = [
   { label: 'Savanna Rug', path: '/images/rug-savanna-contour.jpg' },
@@ -72,6 +75,8 @@ export default function AdminPage({
   const [confirmReset, setConfirmReset] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [toast, setToast] = useState(null);
+  const [adminTab, setAdminTab] = useState('catalog');
+  const [posterProduct, setPosterProduct] = useState(null);
 
   const fileInputRef = useRef(null);
   const importInputRef = useRef(null);
@@ -446,7 +451,37 @@ export default function AdminPage({
           </div>
         </section>
 
-        {/* Main 2-Column Workspace */}
+        {/* Studio Mode Switcher: Catalog Manager vs. 1-Click Status Poster Studio */}
+        <div className="admin-mode-tabs" role="tablist" aria-label="Studio tools">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={adminTab === 'catalog'}
+            className={`admin-mode-tab ${adminTab === 'catalog' ? 'active' : ''}`}
+            onClick={() => setAdminTab('catalog')}
+          >
+            <LayoutGrid size={16} />
+            Storefront Catalog
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={adminTab === 'poster'}
+            className={`admin-mode-tab ${adminTab === 'poster' ? 'active' : ''}`}
+            onClick={() => setAdminTab('poster')}
+          >
+            <Sparkles size={16} />
+            1-Click Status Poster Generator
+          </button>
+        </div>
+
+        {adminTab === 'poster' ? (
+          <StatusPosterStudio
+            initialProduct={posterProduct}
+            onNotify={showToast}
+          />
+        ) : (
+        /* Main 2-Column Workspace */
         <div className="admin-workspace">
           {/* Left: Product Inventory List */}
           <section className="admin-panel">
@@ -566,6 +601,19 @@ export default function AdminPage({
                           </div>
                         ) : (
                           <>
+                            <button
+                              type="button"
+                              className="icon-circle-btn"
+                              title="Create branded WhatsApp Status poster"
+                              aria-label={`Create Status poster for ${product.name}`}
+                              onClick={() => {
+                                setPosterProduct(product);
+                                setAdminTab('poster');
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                            >
+                              <Sparkles size={15} />
+                            </button>
                             <button
                               type="button"
                               className="icon-circle-btn"
@@ -942,6 +990,7 @@ export default function AdminPage({
             </form>
           </section>
         </div>
+        )}
       </main>
     </div>
   );

@@ -1,5 +1,10 @@
 # Dependencies
 node_modules
+ad-studio/node_modules
+ad-studio/public/media
+ad-studio/public/status-rugs
+status-posts
+*.mp4
 
 # Production build
 dist

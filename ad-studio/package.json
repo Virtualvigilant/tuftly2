@@ -1,0 +1,20 @@
+{
+  "name": "tuftly-ad-studio",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "render": "remotion render src/index.ts TuftlyCommercial ../Tuftly_Promo_Ad_HD.mp4 --codec=h264 --crf=18",
+    "render:reels": "remotion render src/index.ts TuftlyReels ../Tuftly_Promo_Ad_Reels_9x16.mp4 --codec=h264 --crf=18"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.350",
+    "@remotion/transitions": "^4.0.350",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "remotion": "^4.0.350"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "typescript": "^5.9.0"
+  }
+}
