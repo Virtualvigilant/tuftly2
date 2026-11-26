@@ -21,6 +21,7 @@ import {
   processDesignToStencilAndRug,
   renderClientQuoteToCanvas,
 } from '../utils/tuftingToolkitEngine';
+import TrueScaleProjector from './TrueScaleProjector.jsx';
 
 const SIZE_PRESETS_CM = [40, 60, 80, 100, 120, 160];
 
@@ -47,6 +48,7 @@ export default function TuftingToolkit({ initialProduct, onNotify }) {
   const [processing, setProcessing] = useState(false);
   const [aspectRatio, setAspectRatio] = useState(1);
   const [stencilUrl, setStencilUrl] = useState('');
+  const [outlineUrl, setOutlineUrl] = useState('');
   const [rugPreviewUrl, setRugPreviewUrl] = useState('');
   const [colors, setColors] = useState([]);
 
@@ -109,6 +111,7 @@ export default function TuftingToolkit({ initialProduct, onNotify }) {
         if (cancelled) return;
         setAspectRatio(res.aspectRatio || 1);
         setStencilUrl(res.stencilDataUrl);
+        setOutlineUrl(res.outlineDataUrl || res.stencilDataUrl);
         setRugPreviewUrl(res.rugPreviewDataUrl);
         setColors(res.colors);
         setHeightCm((prevH) =>
@@ -426,7 +429,7 @@ export default function TuftingToolkit({ initialProduct, onNotify }) {
                 onClick={() => setProjectorOpen(true)}
               >
                 <Maximize2 size={15} />
-                Projector Mode
+                1:1 Scale Projector ({widthCm}×{heightCm} cm)
               </button>
               <button
                 type="button"
@@ -486,6 +489,40 @@ export default function TuftingToolkit({ initialProduct, onNotify }) {
                   >
                     <strong>Compare Slider</strong>
                     <span>Photo vs. tufted rug</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Target Physical Rug Size (Synced with 1:1 Projector & Yarn Calculator!) */}
+              <div className="admin-field">
+                <label className="admin-label">
+                  Target Rug Dimensions on Monk&apos;s Cloth (cm — For 1:1 Scale Projection)
+                </label>
+                <div className="yarn-dim-row">
+                  <input
+                    type="number"
+                    min={15}
+                    className="admin-input"
+                    value={widthCm}
+                    onChange={(e) => handleWidthChange(e.target.value)}
+                    aria-label="Target rug width in cm"
+                  />
+                  <span style={{ fontWeight: 700, color: 'var(--ink-muted)' }}>×</span>
+                  <input
+                    type="number"
+                    min={15}
+                    className="admin-input"
+                    value={heightCm}
+                    onChange={(e) => handleHeightChange(e.target.value)}
+                    aria-label="Target rug height in cm"
+                  />
+                  <button
+                    type="button"
+                    className="icon-circle-btn"
+                    title={lockRatio ? 'Unlock aspect ratio' : 'Lock aspect ratio'}
+                    onClick={() => setLockRatio((l) => !l)}
+                  >
+                    {lockRatio ? <Lock size={15} /> : <Unlock size={15} />}
                   </button>
                 </div>
               </div>
@@ -945,59 +982,19 @@ export default function TuftingToolkit({ initialProduct, onNotify }) {
         </div>
       )}
 
-      {/* Fullscreen Projector Modal for Tracing Onto Monk's Cloth */}
+      {/* True-Scale 1:1 Calibrated Projector Modal for Tracing Onto Monk's Cloth */}
       {projectorOpen && (
-        <div className="projector-backdrop">
-          <div className="projector-toolbar">
-            <span>
-              Projector Mode ({mirror ? 'Mirrored for Back-of-Frame' : 'Normal'})
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-              <label style={{ fontSize: '0.8rem' }}>
-                Zoom:
-                <input
-                  type="range"
-                  min={0.5}
-                  max={2.2}
-                  step={0.05}
-                  value={projectorZoom}
-                  onChange={(e) => setProjectorZoom(Number(e.target.value))}
-                  style={{ marginLeft: 8, verticalAlign: 'middle' }}
-                />
-              </label>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline"
-                style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.35)' }}
-                onClick={() => setMirror((m) => !m)}
-              >
-                <FlipHorizontal size={14} />
-                Flip
-              </button>
-              <button
-                type="button"
-                className="btn btn-sm btn-rose"
-                onClick={() => setProjectorOpen(false)}
-              >
-                <X size={15} />
-                Exit Projector
-              </button>
-            </div>
-          </div>
-          <div className="projector-canvas-area">
-            {stencilUrl && (
-              <img
-                src={stencilUrl}
-                alt="Projector stencil"
-                style={{
-                  maxWidth: '90vw',
-                  maxHeight: '84vh',
-                  transform: `scale(${projectorZoom})`,
-                }}
-              />
-            )}
-          </div>
-        </div>
+        <TrueScaleProjector
+          stencilUrl={stencilUrl}
+          outlineUrl={outlineUrl}
+          widthCm={widthCm}
+          heightCm={heightCm}
+          onChangeWidthCm={handleWidthChange}
+          onChangeHeightCm={handleHeightChange}
+          mirror={mirror}
+          onToggleMirror={() => setMirror((m) => !m)}
+          onClose={() => setProjectorOpen(false)}
+        />
       )}
     </div>
   );

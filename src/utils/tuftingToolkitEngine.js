@@ -166,6 +166,13 @@ export async function processDesignToStencilAndRug(
   const stCtx = stencilCanvas.getContext('2d');
   const stImg = stCtx.createImageData(w, h);
 
+  // Build HIGH-CONTRAST PROJECTOR OUTLINE canvas (glowing crisp white/cyan lines on pure black for monk's cloth tracing!)
+  const outlineCanvas = document.createElement('canvas');
+  outlineCanvas.width = w;
+  outlineCanvas.height = h;
+  const olCtx = outlineCanvas.getContext('2d');
+  const olImg = olCtx.createImageData(w, h);
+
   // Build RUG PREVIEW canvas (un-mirrored so customer sees true front orientation! + wool tuft texture & carved bevels)
   const rugCanvas = document.createElement('canvas');
   rugCanvas.width = w;
@@ -186,24 +193,43 @@ export async function processDesignToStencilAndRug(
 
       if (!opaqueMask[idx]) {
         stImg.data[stOff + 3] = 0;
+        olImg.data[stOff + 3] = 255;
         continue;
       }
 
       const cIdx = labels[idx];
       const [cr, cg, cb] = centroids[cIdx];
 
-      // Detect region boundary for stencil outline & carved rug bevel
+      // Detect region boundary (1–2px thick for clear marker tracing on monk's cloth)
       let isEdge = false;
       if (x > 0 && x < w - 1 && y > 0 && y < h - 1) {
         if (
           labels[idx - 1] !== cIdx ||
           labels[idx + 1] !== cIdx ||
           labels[idx - w] !== cIdx ||
-          labels[idx + w] !== cIdx
+          labels[idx + w] !== cIdx ||
+          !opaqueMask[idx - 1] ||
+          !opaqueMask[idx + 1] ||
+          !opaqueMask[idx - w] ||
+          !opaqueMask[idx + w]
         ) {
           isEdge = true;
         }
+      } else {
+        isEdge = true;
       }
+
+      // High-contrast projector outline pixel (bright neon-white line on pure black)
+      if (isEdge) {
+        olImg.data[stOff] = 255;
+        olImg.data[stOff + 1] = 255;
+        olImg.data[stOff + 2] = 190;
+      } else {
+        olImg.data[stOff] = 0;
+        olImg.data[stOff + 1] = 0;
+        olImg.data[stOff + 2] = 0;
+      }
+      olImg.data[stOff + 3] = 255;
 
       // Stencil pixel
       if (isEdge) {
@@ -237,6 +263,7 @@ export async function processDesignToStencilAndRug(
   }
 
   stCtx.putImageData(stImg, 0, 0);
+  olCtx.putImageData(olImg, 0, 0);
   rgCtx.putImageData(rgImg, 0, 0);
 
   // Build sorted colour breakdown (largest yarn area first)
@@ -262,6 +289,7 @@ export async function processDesignToStencilAndRug(
   return {
     aspectRatio: img.width / img.height,
     stencilDataUrl: stencilCanvas.toDataURL('image/png'),
+    outlineDataUrl: outlineCanvas.toDataURL('image/png'),
     rugPreviewDataUrl: rugCanvas.toDataURL('image/jpeg', 0.92),
     colors,
   };
