@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
+  Calculator,
   Check,
   Copy,
   Download,
@@ -27,6 +28,7 @@ import {
   setAdminSessionUnlocked,
 } from '../data/productStore';
 import StatusPosterStudio from './StatusPosterStudio.jsx';
+import TuftingToolkit from './TuftingToolkit.jsx';
 
 const STUDIO_SAMPLE_IMAGES = [
   { label: 'Savanna Rug', path: '/images/rug-savanna-contour.jpg' },
@@ -471,12 +473,27 @@ export default function AdminPage({
             onClick={() => setAdminTab('poster')}
           >
             <Sparkles size={16} />
-            1-Click Status Poster Generator
+            1-Click Status Poster
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={adminTab === 'toolkit'}
+            className={`admin-mode-tab ${adminTab === 'toolkit' ? 'active' : ''}`}
+            onClick={() => setAdminTab('toolkit')}
+          >
+            <Calculator size={16} />
+            Yarn Calculator &amp; Client Quote
           </button>
         </div>
 
         {adminTab === 'poster' ? (
           <StatusPosterStudio
+            initialProduct={posterProduct}
+            onNotify={showToast}
+          />
+        ) : adminTab === 'toolkit' ? (
+          <TuftingToolkit
             initialProduct={posterProduct}
             onNotify={showToast}
           />
@@ -601,6 +618,19 @@ export default function AdminPage({
                           </div>
                         ) : (
                           <>
+                            <button
+                              type="button"
+                              className="icon-circle-btn"
+                              title="Yarn Calculator & Client Quote"
+                              aria-label={`Open Yarn Calculator & Quote for ${product.name}`}
+                              onClick={() => {
+                                setPosterProduct(product);
+                                setAdminTab('toolkit');
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                            >
+                              <Calculator size={15} />
+                            </button>
                             <button
                               type="button"
                               className="icon-circle-btn"

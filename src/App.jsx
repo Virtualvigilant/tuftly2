@@ -8,6 +8,7 @@ import BespokeEstimator from './components/BespokeEstimator.jsx';
 import AtelierAndFaq from './components/AtelierAndFaq.jsx';
 import Footer from './components/Footer.jsx';
 import AdminPage from './components/AdminPage.jsx';
+import FloorSpaceViewer from './components/FloorSpaceViewer.jsx';
 import { buildWhatsAppUrl } from './data/tuftlyConfig.js';
 import {
   loadCatalogProducts,
@@ -15,20 +16,21 @@ import {
   saveCatalogProducts,
 } from './data/productStore.js';
 
-function isAdminRoute() {
-  return (
-    window.location.hash === '#admin' ||
-    window.location.pathname.replace(/\/+$/, '') === '/admin'
-  );
+function getCurrentRoute() {
+  const path = window.location.pathname.replace(/\/+$/, '');
+  const hash = window.location.hash;
+  if (path === '/preview' || hash.startsWith('#preview')) return 'preview';
+  if (path === '/admin' || hash === '#admin') return 'admin';
+  return 'store';
 }
 
 export default function App() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [products, setProducts] = useState(() => loadCatalogProducts());
-  const [showAdmin, setShowAdmin] = useState(() => isAdminRoute());
+  const [route, setRoute] = useState(() => getCurrentRoute());
 
   useEffect(() => {
-    const syncRoute = () => setShowAdmin(isAdminRoute());
+    const syncRoute = () => setRoute(getCurrentRoute());
     window.addEventListener('hashchange', syncRoute);
     window.addEventListener('popstate', syncRoute);
     return () => {
@@ -50,23 +52,24 @@ export default function App() {
     setProducts(defaults);
   };
 
-  const handleExitAdmin = () => {
-    if (window.location.pathname.replace(/\/+$/, '') === '/admin') {
-      window.history.pushState({}, '', '/');
-    } else {
-      window.location.hash = '';
-    }
-    setShowAdmin(false);
+  const goHome = () => {
+    window.history.pushState({}, '', '/');
+    window.location.hash = '';
+    setRoute('store');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (showAdmin) {
+  if (route === 'preview') {
+    return <FloorSpaceViewer onBackToSite={goHome} />;
+  }
+
+  if (route === 'admin') {
     return (
       <AdminPage
         products={products}
         onSaveProducts={handleSaveProducts}
         onResetProducts={handleResetProducts}
-        onExitAdmin={handleExitAdmin}
+        onExitAdmin={goHome}
       />
     );
   }
